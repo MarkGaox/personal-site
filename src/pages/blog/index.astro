@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, formatDate, url } from '../../lib';
+
+const posts = await getPosts();
+const years = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.data.date.getUTCFullYear();
+  years.set(y, [...(years.get(y) ?? []), p]);
+}
+---
+<Base title="Writing" description="Everything Xiaxuan Gao has written, newest first.">
+  <div class="wrap">
+    <h1 class="title">Writing</h1>
+    <p class="intro">Notes, explanations, and post-mortems, newest first. You can also <a href={url('/rss.xml')}>follow along with RSS</a>.</p>
+    {posts.length === 0 && <p>Nothing published yet.</p>}
+    {[...years].map(([year, list]) => (
+      <section class="section year">
+        <h2>{year}</h2>
+        <ul class="posts">
+          {list.map((p) => (
+            <li>
+              <a href={url(`/blog/${p.id}/`)}>
+                <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date, 'short')}</time>
+                <span class="t">{p.data.title}</span>
+                {p.data.summary && <span class="s">{p.data.summary}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .title {
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-variation-settings: 'wdth' 76, 'opsz' 96;
+    font-weight: 760; letter-spacing: -0.035em; line-height: 0.9;
+    margin: clamp(1.5rem, 5vw, 3.5rem) 0 1rem;
+    color: var(--wash);
+  }
+  :global([data-theme='dark']) .title { color: var(--fade); }
+  @media (prefers-color-scheme: dark) { :global(:root:not([data-theme='light'])) .title { color: var(--fade); } }
+  .intro { max-width: var(--measure); margin: 0 0 1rem; color: var(--ink-soft); }
+  .year > h2 { font-size: 2rem; color: var(--fade); font-variation-settings: 'wdth' 80; }
+  .year .posts li:first-child { padding-top: 0; }
+</style>
