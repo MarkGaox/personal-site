@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib';
+---
+<Base title="Page not found">
+  <h1 data-reveal style="--i: 0; font-size: 2rem; letter-spacing: -0.035em;">Page not found</h1>
+  <p class="muted" data-reveal style="--i: 1">There’s nothing at this address. It may have moved, or the link may have a typo.</p>
+  <p data-reveal style="--i: 2"><a href={url('/')}>Go home</a> or <a href={url('/blog/')}>browse all writing</a>.</p>
+</Base>

@@ -1,0 +1,195 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../site';
+import { getPosts, formatDate, url } from '../lib';
+
+const posts = (await getPosts()).slice(0, 6);
+---
+<Base>
+  <header class="hero">
+    <div class="avatar" data-reveal style="--i: 0">
+      {site.avatar ? <img src={url(site.avatar)} alt="" width="72" height="72" /> : (
+        <span class="orb" aria-hidden="true"><i></i><i></i><i></i></span>
+      )}
+    </div>
+    <h1 data-reveal style="--i: 1">Hey, I’m {site.firstName}.</h1>
+    <p class="intro" data-reveal style="--i: 2">{site.intro}</p>
+    <ul class="socials" data-reveal style="--i: 3">
+      {site.links.map((l) => (
+        <li>
+          <a href={l.href.startsWith('/') ? url(l.href) : l.href} aria-label={l.label} title={l.label}>
+            <Icon name={l.icon} />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </header>
+
+  <section class="section" data-reveal style="--i: 4" data-tabs>
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <span class="pill" aria-hidden="true"></span>
+      <button role="tab" id="tab-writing" aria-controls="panel-writing" aria-selected="true">Writing</button>
+      <button role="tab" id="tab-projects" aria-controls="panel-projects" aria-selected="false" tabindex="-1">Projects</button>
+      <button role="tab" id="tab-stack" aria-controls="panel-stack" aria-selected="false" tabindex="-1">Stack</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-writing" aria-labelledby="tab-writing">
+      {posts.length === 0 ? (
+        <p class="muted">Nothing published yet. The first post is on its way.</p>
+      ) : (
+        <ul class="rows">
+          {posts.map((p) => (
+            <li>
+              <a href={url(`/blog/${p.id}/`)}>
+                <span class="t">{p.data.title}</span>
+                <time class="d" datetime={p.data.date.toISOString()}>{formatDate(p.data.date, 'short')}</time>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      <a class="more" href={url('/blog/')}>All writing <Icon name="arrow" /></a>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-projects" aria-labelledby="tab-projects">
+      <ul class="cards">
+        {site.projects.map((p) => (
+          <li>
+            <a href={p.href}>
+              <span class="card-head">
+                <span class="card-name">{p.name}</span>
+                <Icon name="arrow" />
+              </span>
+              <span class="card-blurb">{p.blurb}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-stack" aria-labelledby="tab-stack">
+      <ul class="chips">
+        {site.stack.map((s) => <li>{s}</li>)}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-tabs]')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const pill = root.querySelector<HTMLElement>('.pill')!;
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')!)!.hidden = !on;
+      }
+      pill.style.width = `${tab.offsetWidth}px`;
+      pill.style.transform = `translateX(${tab.offsetLeft}px)`;
+      if (focus) tab.focus();
+    };
+    root.classList.add('tabs-ready');
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t));
+      t.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (d) select(tabs[(i + d + tabs.length) % tabs.length], true);
+      });
+    });
+    select(tabs[0]);
+    document.fonts?.ready.then(() => select(tabs.find((t) => t.tabIndex === 0)!));
+  }
+</script>
+
+<style>
+  .avatar {
+    width: 64px; height: 64px; border-radius: 50%; overflow: hidden; position: relative;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 0 0 1px var(--border), 0 10px 30px -12px rgba(255, 91, 46, 0.55);
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  /* Soft mesh-gradient orb, shown until a photo is set */
+  .orb { position: absolute; inset: 0; background: #ffd9c2; }
+  .orb i { position: absolute; border-radius: 50%; filter: blur(10px); }
+  .orb i:nth-child(1) { width: 70%; height: 70%; left: -10%; top: -5%; background: #ff5b2e; }
+  .orb i:nth-child(2) { width: 65%; height: 65%; right: -15%; top: 20%; background: #ff9ec7; }
+  .orb i:nth-child(3) { width: 60%; height: 60%; left: 15%; bottom: -25%; background: #ffc04d; }
+  .orb::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(60% 50% at 35% 25%, rgba(255,255,255,.55), transparent 70%);
+    mix-blend-mode: soft-light;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .orb i { animation: drift 9s ease-in-out infinite alternate; }
+    .orb i:nth-child(2) { animation-duration: 11s; animation-delay: -3s; }
+    .orb i:nth-child(3) { animation-duration: 13s; animation-delay: -6s; }
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(12%, 8%) scale(1.1); }
+    100% { transform: translate(-8%, 12%) scale(0.95); }
+  }
+  h1 { font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem); letter-spacing: -0.035em; }
+  .intro { margin: 0.9rem 0 0; color: var(--muted); font-size: 1.0625rem; line-height: 1.65; max-width: 34rem; }
+  .socials { list-style: none; display: flex; gap: 0.35rem; margin: 1.5rem 0 0 -0.5rem; padding: 0; }
+  .socials a {
+    display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 10px;
+    color: var(--muted); transition: color .2s ease, background-color .2s ease;
+  }
+  .socials a:hover { color: var(--text); background: var(--hover); }
+  .socials :global(svg) { width: 17px; height: 17px; }
+
+  .tabs {
+    position: relative; display: inline-flex; gap: 0.15rem; padding: 0.25rem;
+    background: var(--hover); border: 1px solid var(--border); border-radius: 999px;
+    margin-bottom: 1.5rem;
+  }
+  .tabs button {
+    position: relative; z-index: 1;
+    font: inherit; font-size: 0.875rem; font-weight: 500;
+    padding: 0.4rem 0.95rem; border: 0; background: none; border-radius: 999px;
+    color: var(--muted); cursor: pointer; transition: color .25s ease;
+  }
+  .tabs button[aria-selected='true'] { color: var(--text); }
+  .pill {
+    position: absolute; top: 0.25rem; bottom: 0.25rem; left: 0; width: 0;
+    background: var(--surface); border-radius: 999px; box-shadow: var(--shadow), 0 0 0 1px var(--border);
+    transition: transform .35s cubic-bezier(.3,.7,.2,1), width .35s cubic-bezier(.3,.7,.2,1);
+  }
+  :global(:not(.tabs-ready)) > .tabs .pill { opacity: 0; }
+  :global(.tabs-ready) .panel { animation: swap .45s cubic-bezier(.2,.7,.2,1) both; }
+  @media (prefers-reduced-motion: reduce) { :global(.tabs-ready) .panel { animation: none; } .pill { transition: none; } }
+  @keyframes swap { from { opacity: 0; filter: blur(6px); transform: translateY(4px); } to { opacity: 1; filter: none; transform: none; } }
+  /* Without JS every panel shows, one after another */
+  :global(:not(.tabs-ready)) > .panel + .panel { margin-top: 2rem; }
+
+  .more {
+    display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 1rem;
+    font-size: 0.9rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  }
+  .more:hover { color: var(--text); }
+  .more :global(svg) { width: 14px; height: 14px; transition: transform .2s ease; }
+  .more:hover :global(svg) { transform: translate(2px, -2px); }
+
+  .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+  .cards a {
+    display: block; padding: 1.1rem 1.2rem; border-radius: 16px; text-decoration: none;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .cards a:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--text) 18%, var(--border)); }
+  .card-head { display: flex; justify-content: space-between; align-items: center; }
+  .card-name { font-weight: 600; letter-spacing: -0.01em; }
+  .card-head :global(svg) { width: 15px; height: 15px; color: var(--faint); transition: color .2s ease, transform .2s ease; }
+  .cards a:hover .card-head :global(svg) { color: var(--text); transform: translate(2px, -2px); }
+  .card-blurb { display: block; margin-top: 0.3rem; color: var(--muted); font-size: 0.925rem; }
+
+  .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chips li {
+    font-size: 0.875rem; font-weight: 500; padding: 0.4rem 0.85rem; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+</style>

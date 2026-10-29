@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, formatDate, url } from '../../lib';
+
+const posts = await getPosts();
+const years = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.data.date.getUTCFullYear();
+  years.set(y, [...(years.get(y) ?? []), p]);
+}
+---
+<Base title="Writing" description="Everything Xiaxuan Gao has written, newest first.">
+  <h1 data-reveal style="--i: 0">Writing</h1>
+  <p class="lead muted" data-reveal style="--i: 1">Notes on systems, machine learning infrastructure, and things I’m figuring out. You can <a href={url('/rss.xml')}>subscribe with RSS</a>.</p>
+  {posts.length === 0 && <p class="muted">Nothing published yet.</p>}
+  {[...years].map(([year, list], i) => (
+    <section class="year" data-reveal style={`--i: ${i + 2}`}>
+      <h2 class="section-title">{year}</h2>
+      <ul class="rows">
+        {list.map((p) => (
+          <li>
+            <a href={url(`/blog/${p.id}/`)}>
+              <span class="t">
+                {p.data.title}
+                {p.data.summary && <span class="s">{p.data.summary}</span>}
+              </span>
+              <time class="d" datetime={p.data.date.toISOString()}>{formatDate(p.data.date, 'short')}</time>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>
+
+<style>
+  h1 { font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem); letter-spacing: -0.035em; }
+  .lead { margin: 0.8rem 0 0; font-size: 1.0625rem; max-width: 34rem; }
+  .lead a { text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+  .year { margin-top: 3rem; }
+  .year .section-title { margin-bottom: 0.5rem; }
+</style>
