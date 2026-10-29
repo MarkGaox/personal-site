@@ -5,12 +5,13 @@ import { site } from '../site';
 import { getPosts, formatDate, url } from '../lib';
 
 const posts = (await getPosts()).slice(0, 6);
-const initials = site.name.split(' ').map((w) => w[0]).join('');
 ---
 <Base>
   <header class="hero">
     <div class="avatar" data-reveal style="--i: 0">
-      {site.avatar ? <img src={url(site.avatar)} alt="" width="72" height="72" /> : <span aria-hidden="true">{initials}</span>}
+      {site.avatar ? <img src={url(site.avatar)} alt="" width="72" height="72" /> : (
+        <span class="orb" aria-hidden="true"><i></i><i></i><i></i></span>
+      )}
     </div>
     <h1 data-reveal style="--i: 1">Hey, I’m {site.firstName}.</h1>
     <p class="intro" data-reveal style="--i: 2">{site.intro}</p>
@@ -105,14 +106,32 @@ const initials = site.name.split(' ').map((w) => w[0]).join('');
 
 <style>
   .avatar {
-    width: 72px; height: 72px; border-radius: 22px; overflow: hidden;
-    display: grid; place-items: center;
-    background: radial-gradient(120% 120% at 25% 20%, #ffc7a6 0%, #ff7a45 45%, #e2401f 100%);
-    color: #fff; font-weight: 600; font-size: 1.4rem; letter-spacing: -0.02em;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 8px 24px -8px rgba(226, 64, 31, .45);
+    width: 64px; height: 64px; border-radius: 50%; overflow: hidden; position: relative;
     margin-bottom: 1.75rem;
+    box-shadow: 0 0 0 1px var(--border), 0 10px 30px -12px rgba(255, 91, 46, 0.55);
   }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  /* Soft mesh-gradient orb, shown until a photo is set */
+  .orb { position: absolute; inset: 0; background: #ffd9c2; }
+  .orb i { position: absolute; border-radius: 50%; filter: blur(10px); }
+  .orb i:nth-child(1) { width: 70%; height: 70%; left: -10%; top: -5%; background: #ff5b2e; }
+  .orb i:nth-child(2) { width: 65%; height: 65%; right: -15%; top: 20%; background: #ff9ec7; }
+  .orb i:nth-child(3) { width: 60%; height: 60%; left: 15%; bottom: -25%; background: #ffc04d; }
+  .orb::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(60% 50% at 35% 25%, rgba(255,255,255,.55), transparent 70%);
+    mix-blend-mode: soft-light;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .orb i { animation: drift 9s ease-in-out infinite alternate; }
+    .orb i:nth-child(2) { animation-duration: 11s; animation-delay: -3s; }
+    .orb i:nth-child(3) { animation-duration: 13s; animation-delay: -6s; }
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(12%, 8%) scale(1.1); }
+    100% { transform: translate(-8%, 12%) scale(0.95); }
+  }
   h1 { font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem); letter-spacing: -0.035em; }
   .intro { margin: 0.9rem 0 0; color: var(--muted); font-size: 1.0625rem; line-height: 1.65; max-width: 34rem; }
   .socials { list-style: none; display: flex; gap: 0.35rem; margin: 1.5rem 0 0 -0.5rem; padding: 0; }
