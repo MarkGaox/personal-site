@@ -1,92 +1,176 @@
 ---
 import Base from '../layouts/Base.astro';
-import Print from '../components/Print.astro';
+import Icon from '../components/Icon.astro';
 import { site } from '../site';
 import { getPosts, formatDate, url } from '../lib';
 
-const posts = (await getPosts()).slice(0, 5);
+const posts = (await getPosts()).slice(0, 6);
+const initials = site.name.split(' ').map((w) => w[0]).join('');
 ---
 <Base>
-  <div class="wrap">
-    <Print size="hero" develop>
-      <h1 class="name">{site.name}</h1>
-      <p class="tagline">{site.tagline}</p>
-    </Print>
-  </div>
+  <header class="hero">
+    <div class="avatar" data-reveal style="--i: 0">
+      {site.avatar ? <img src={url(site.avatar)} alt="" width="72" height="72" /> : <span aria-hidden="true">{initials}</span>}
+    </div>
+    <h1 data-reveal style="--i: 1">Hey, I’m {site.firstName}.</h1>
+    <p class="intro" data-reveal style="--i: 2">{site.intro}</p>
+    <ul class="socials" data-reveal style="--i: 3">
+      {site.links.map((l) => (
+        <li>
+          <a href={l.href.startsWith('/') ? url(l.href) : l.href} aria-label={l.label} title={l.label}>
+            <Icon name={l.icon} />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </header>
 
-  <div class="wrap">
-    <section class="section">
-      <h2>About</h2>
-      <div class="prose lede">
-        {site.intro.map((p) => <p>{p}</p>)}
-      </div>
-    </section>
+  <section class="section" data-reveal style="--i: 4" data-tabs>
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <span class="pill" aria-hidden="true"></span>
+      <button role="tab" id="tab-writing" aria-controls="panel-writing" aria-selected="true">Writing</button>
+      <button role="tab" id="tab-projects" aria-controls="panel-projects" aria-selected="false" tabindex="-1">Projects</button>
+      <button role="tab" id="tab-stack" aria-controls="panel-stack" aria-selected="false" tabindex="-1">Stack</button>
+    </div>
 
-    <section class="section">
-      <h2>Lately</h2>
-      <ul class="prose now">
-        {site.now.map((item) => <li>{item}</li>)}
-      </ul>
-    </section>
+    <div class="panel" role="tabpanel" id="panel-writing" aria-labelledby="tab-writing">
+      {posts.length === 0 ? (
+        <p class="muted">Nothing published yet. The first post is on its way.</p>
+      ) : (
+        <ul class="rows">
+          {posts.map((p) => (
+            <li>
+              <a href={url(`/blog/${p.id}/`)}>
+                <span class="t">{p.data.title}</span>
+                <time class="d" datetime={p.data.date.toISOString()}>{formatDate(p.data.date, 'short')}</time>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      <a class="more" href={url('/blog/')}>All writing <Icon name="arrow" /></a>
+    </div>
 
-    <section class="section">
-      <h2>Writing</h2>
-      <div>
-        {posts.length === 0 ? (
-          <p>Nothing published yet. The first post is on its way.</p>
-        ) : (
-          <ul class="posts">
-            {posts.map((p) => (
-              <li>
-                <a href={url(`/blog/${p.id}/`)}>
-                  <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date)}</time>
-                  <span class="t">{p.data.title}</span>
-                  {p.data.summary && <span class="s">{p.data.summary}</span>}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p class="all"><a href={url('/blog/')}>Read all posts</a></p>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>Elsewhere</h2>
-      <ul class="links">
-        {site.links.map((l) => (
-          <li><a href={l.href.startsWith('/') ? url(l.href) : l.href}>{l.label}</a></li>
+    <div class="panel" role="tabpanel" id="panel-projects" aria-labelledby="tab-projects">
+      <ul class="cards">
+        {site.projects.map((p) => (
+          <li>
+            <a href={p.href}>
+              <span class="card-head">
+                <span class="card-name">{p.name}</span>
+                <Icon name="arrow" />
+              </span>
+              <span class="card-blurb">{p.blurb}</span>
+            </a>
+          </li>
         ))}
       </ul>
-    </section>
-  </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-stack" aria-labelledby="tab-stack">
+      <ul class="chips">
+        {site.stack.map((s) => <li>{s}</li>)}
+      </ul>
+    </div>
+  </section>
 </Base>
 
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-tabs]')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const pill = root.querySelector<HTMLElement>('.pill')!;
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')!)!.hidden = !on;
+      }
+      pill.style.width = `${tab.offsetWidth}px`;
+      pill.style.transform = `translateX(${tab.offsetLeft}px)`;
+      if (focus) tab.focus();
+    };
+    root.classList.add('tabs-ready');
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t));
+      t.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (d) select(tabs[(i + d + tabs.length) % tabs.length], true);
+      });
+    });
+    select(tabs[0]);
+    document.fonts?.ready.then(() => select(tabs.find((t) => t.tabIndex === 0)!));
+  }
+</script>
+
 <style>
-  .name {
-    margin: 0;
-    font-size: clamp(3.6rem, 17vw, 11.5rem);
-    font-weight: 760;
-    font-variation-settings: 'wdth' 76, 'opsz' 96;
-    line-height: 0.86;
-    letter-spacing: -0.035em;
-    max-width: 8ch;
+  .avatar {
+    width: 72px; height: 72px; border-radius: 22px; overflow: hidden;
+    display: grid; place-items: center;
+    background: radial-gradient(120% 120% at 25% 20%, #ffc7a6 0%, #ff7a45 45%, #e2401f 100%);
+    color: #fff; font-weight: 600; font-size: 1.4rem; letter-spacing: -0.02em;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 8px 24px -8px rgba(226, 64, 31, .45);
+    margin-bottom: 1.75rem;
   }
-  .tagline {
-    margin: clamp(1.5rem, 4vw, 2.5rem) 0 0;
-    max-width: 30ch;
-    font-size: clamp(1.15rem, 1rem + 0.8vw, 1.6rem);
-    line-height: 1.35;
-    font-style: italic;
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  h1 { font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem); letter-spacing: -0.035em; }
+  .intro { margin: 0.9rem 0 0; color: var(--muted); font-size: 1.0625rem; line-height: 1.65; max-width: 34rem; }
+  .socials { list-style: none; display: flex; gap: 0.35rem; margin: 1.5rem 0 0 -0.5rem; padding: 0; }
+  .socials a {
+    display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 10px;
+    color: var(--muted); transition: color .2s ease, background-color .2s ease;
   }
-  .lede p:first-child { font-size: 1.15em; }
-  .now { list-style: none; padding: 0; margin: 0; }
-  .now li { padding-left: 1.4em; position: relative; margin-bottom: 0.5em; }
-  .now li::before {
-    content: ''; position: absolute; left: 0; top: 0.62em;
-    width: 0.6em; height: 0.6em; border-radius: 50%;
-    background: var(--ferric);
+  .socials a:hover { color: var(--text); background: var(--hover); }
+  .socials :global(svg) { width: 17px; height: 17px; }
+
+  .tabs {
+    position: relative; display: inline-flex; gap: 0.15rem; padding: 0.25rem;
+    background: var(--hover); border: 1px solid var(--border); border-radius: 999px;
+    margin-bottom: 1.5rem;
   }
-  .all { margin: 1.25rem 0 0; font-family: var(--display); }
-  .links { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; font-family: var(--display); font-size: 1.15rem; }
+  .tabs button {
+    position: relative; z-index: 1;
+    font: inherit; font-size: 0.875rem; font-weight: 500;
+    padding: 0.4rem 0.95rem; border: 0; background: none; border-radius: 999px;
+    color: var(--muted); cursor: pointer; transition: color .25s ease;
+  }
+  .tabs button[aria-selected='true'] { color: var(--text); }
+  .pill {
+    position: absolute; top: 0.25rem; bottom: 0.25rem; left: 0; width: 0;
+    background: var(--surface); border-radius: 999px; box-shadow: var(--shadow), 0 0 0 1px var(--border);
+    transition: transform .35s cubic-bezier(.3,.7,.2,1), width .35s cubic-bezier(.3,.7,.2,1);
+  }
+  :global(:not(.tabs-ready)) > .tabs .pill { opacity: 0; }
+  :global(.tabs-ready) .panel { animation: swap .45s cubic-bezier(.2,.7,.2,1) both; }
+  @media (prefers-reduced-motion: reduce) { :global(.tabs-ready) .panel { animation: none; } .pill { transition: none; } }
+  @keyframes swap { from { opacity: 0; filter: blur(6px); transform: translateY(4px); } to { opacity: 1; filter: none; transform: none; } }
+  /* Without JS every panel shows, one after another */
+  :global(:not(.tabs-ready)) > .panel + .panel { margin-top: 2rem; }
+
+  .more {
+    display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 1rem;
+    font-size: 0.9rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  }
+  .more:hover { color: var(--text); }
+  .more :global(svg) { width: 14px; height: 14px; transition: transform .2s ease; }
+  .more:hover :global(svg) { transform: translate(2px, -2px); }
+
+  .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+  .cards a {
+    display: block; padding: 1.1rem 1.2rem; border-radius: 16px; text-decoration: none;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .cards a:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--text) 18%, var(--border)); }
+  .card-head { display: flex; justify-content: space-between; align-items: center; }
+  .card-name { font-weight: 600; letter-spacing: -0.01em; }
+  .card-head :global(svg) { width: 15px; height: 15px; color: var(--faint); transition: color .2s ease, transform .2s ease; }
+  .cards a:hover .card-head :global(svg) { color: var(--text); transform: translate(2px, -2px); }
+  .card-blurb { display: block; margin-top: 0.3rem; color: var(--muted); font-size: 0.925rem; }
+
+  .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chips li {
+    font-size: 0.875rem; font-weight: 500; padding: 0.4rem 0.85rem; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
 </style>

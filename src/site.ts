@@ -2,25 +2,23 @@
 
 export const site = {
   name: 'Xiaxuan Gao',
+  firstName: 'Xiaxuan',
   title: 'Xiaxuan Gao',
   description: 'Xiaxuan Gao writes about systems, machine learning infrastructure, and the things in between.',
-  // One sentence that sits under your name in the hero.
-  tagline: 'I build the systems underneath machine learning, and write down what I learn along the way.',
-  // The short intro on the home page. Each string is one paragraph.
-  intro: [
-    'I’m a software engineer who likes the layer most people would rather not think about: schedulers, runtimes, networks, and the code that keeps large models fed. Past work has taken me through distributed consensus, packet processing, FPGA accelerators, and program analysis.',
-    'This site is where I keep longer notes. Some are explanations I wish I’d had, some are post-mortems of things I broke, and some are just ideas I’m still turning over.',
-  ],
-  // What you are focused on right now. Shown as a short list.
-  now: [
-    'Running LLM inference efficiently on Apple silicon',
-    'Anomaly detection for production systems',
-    'Reading about consensus protocols that don’t need a leader',
-  ],
+  // Shown under "Hey, I'm …" on the home page.
+  intro: 'I’m a software engineer working on the systems underneath machine learning: inference runtimes, distributed storage, and the networks between them. I write here about what I build and what I learn.',
+  // Put a square photo at public/avatar.jpg and set this to '/avatar.jpg'.
+  avatar: '',
   links: [
-    { label: 'GitHub', href: 'https://github.com/MarkGaox' },
-    { label: 'X', href: 'https://x.com/XiaxuanG' },
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/MarkGaox' },
-    { label: 'RSS feed', href: '/rss.xml' },
+    { label: 'GitHub', href: 'https://github.com/MarkGaox', icon: 'github' },
+    { label: 'X', href: 'https://x.com/XiaxuanG', icon: 'x' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/MarkGaox', icon: 'linkedin' },
+    { label: 'RSS', href: '/rss.xml', icon: 'rss' },
   ],
+  projects: [
+    { name: 'vllm-metal', blurb: 'Running vLLM inference on Apple silicon through Metal.', href: 'https://github.com/MarkGaox/vllm-metal' },
+    { name: 'Xline', blurb: 'A geo-distributed key-value store built on the CURP consensus protocol.', href: 'https://github.com/MarkGaox/Xline' },
+    { name: 'Helix', blurb: 'Serving large language models across heterogeneous GPU clusters.', href: 'https://github.com/MarkGaox/helix' },
+  ],
+  stack: ['Rust', 'Python', 'C++', 'CUDA', 'Metal', 'PyTorch', 'Kubernetes', 'DPDK'],
 };

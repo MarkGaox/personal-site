@@ -30,7 +30,7 @@ When it's ready, set `draft: false` (or remove the line), commit, and push to `m
 
 ## Change the home page
 
-Your name, tagline, intro paragraphs, the "Lately" list, and your links all live in `src/site.ts`.
+Your intro, links, projects, and stack all live in `src/site.ts`. To use a photo instead of the initials, put a square image at `public/avatar.jpg` and set `avatar: '/avatar.jpg'`.
 
 ## Run it locally
 
@@ -44,4 +44,4 @@ npm run build    # outputs to dist/
 
 ## Design notes
 
-The look is based on cyanotype prints: a Prussian-blue coat with a hand-brushed edge, cool paper, and the yellow-green of unexposed iron salts as the only accent. The home page print "develops" from yellow-green to blue once on load (skipped when reduced motion is on). Type is Bricolage Grotesque for headings and Newsreader for reading. Colors are tokens at the top of `src/styles/global.css`, and the print itself is `src/components/Print.astro`.
+A minimal single-column layout in the spirit of the Framer "Basics" template: Inter, soft neutrals with one orange accent, a tabbed Writing / Projects / Stack section, blur-in entrance motion (skipped when reduced motion is on), a progressive blur along the bottom edge, and a floating dock with a light/dark toggle. Colors are tokens at the top of `src/styles/global.css`.

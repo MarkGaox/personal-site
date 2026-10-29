@@ -10,40 +10,33 @@ for (const p of posts) {
 }
 ---
 <Base title="Writing" description="Everything Xiaxuan Gao has written, newest first.">
-  <div class="wrap">
-    <h1 class="title">Writing</h1>
-    <p class="intro">Notes, explanations, and post-mortems, newest first. You can also <a href={url('/rss.xml')}>follow along with RSS</a>.</p>
-    {posts.length === 0 && <p>Nothing published yet.</p>}
-    {[...years].map(([year, list]) => (
-      <section class="section year">
-        <h2>{year}</h2>
-        <ul class="posts">
-          {list.map((p) => (
-            <li>
-              <a href={url(`/blog/${p.id}/`)}>
-                <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date, 'short')}</time>
-                <span class="t">{p.data.title}</span>
+  <h1 data-reveal style="--i: 0">Writing</h1>
+  <p class="lead muted" data-reveal style="--i: 1">Notes on systems, machine learning infrastructure, and things I’m figuring out. You can <a href={url('/rss.xml')}>subscribe with RSS</a>.</p>
+  {posts.length === 0 && <p class="muted">Nothing published yet.</p>}
+  {[...years].map(([year, list], i) => (
+    <section class="year" data-reveal style={`--i: ${i + 2}`}>
+      <h2 class="section-title">{year}</h2>
+      <ul class="rows">
+        {list.map((p) => (
+          <li>
+            <a href={url(`/blog/${p.id}/`)}>
+              <span class="t">
+                {p.data.title}
                 {p.data.summary && <span class="s">{p.data.summary}</span>}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ))}
-  </div>
+              </span>
+              <time class="d" datetime={p.data.date.toISOString()}>{formatDate(p.data.date, 'short')}</time>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
 </Base>
 
 <style>
-  .title {
-    font-size: clamp(3rem, 10vw, 7rem);
-    font-variation-settings: 'wdth' 76, 'opsz' 96;
-    font-weight: 760; letter-spacing: -0.035em; line-height: 0.9;
-    margin: clamp(1.5rem, 5vw, 3.5rem) 0 1rem;
-    color: var(--wash);
-  }
-  :global([data-theme='dark']) .title { color: var(--fade); }
-  @media (prefers-color-scheme: dark) { :global(:root:not([data-theme='light'])) .title { color: var(--fade); } }
-  .intro { max-width: var(--measure); margin: 0 0 1rem; color: var(--ink-soft); }
-  .year > h2 { font-size: 2rem; color: var(--fade); font-variation-settings: 'wdth' 80; }
-  .year .posts li:first-child { padding-top: 0; }
+  h1 { font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem); letter-spacing: -0.035em; }
+  .lead { margin: 0.8rem 0 0; font-size: 1.0625rem; max-width: 34rem; }
+  .lead a { text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+  .year { margin-top: 3rem; }
+  .year .section-title { margin-bottom: 0.5rem; }
 </style>
